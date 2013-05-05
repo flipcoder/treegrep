@@ -1,11 +1,11 @@
+#!/usr/bin/rustc
 use core::os;
 use core::vec;
 
-fn grep(append: &str, in : &io::ReaderUtil, recursive : bool) {
-    io::println("grep!");
-    /*while !in.eof() {*/
-        
-    /*}*/
+fn grep(pattern: &str, filename: &str, in : @io::Reader) {
+    if in.eof() { return; }
+
+    io::println(fmt!("%s: %s", filename, in.read_line()));
 }
 
 fn main() {
@@ -15,18 +15,20 @@ fn main() {
         return;
     }
 
+    let pattern = copy args[1];
+
     if args.len() == 2 {
         let in = io::stdin();
-        /*grep("", in);*/
+        grep(pattern, ~"stdin", in);
         return;
     }
 
-    let pattern = copy args[1];
     let files = vec::slice(args, 2, args.len());
 
     let multiple = files.len()>1;
     for files.each |&d| {
         let p: ~Path = ~Path(d);
-        io::println(p.to_str());
+        let in = result::unwrap(io::file_reader(p));
+        grep(pattern, p.to_str(), in);
     }
 }
