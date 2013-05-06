@@ -15,15 +15,18 @@ use pcre::consts::*;
 fn indent_level(line: &str, tabwidth: uint) -> uint {
     let mut indent = 0u;
 
-    for line.each_char |ch| {
+    let ch : char = ' ';
+    for str::each_char(line) |ch| {
         if ch == ' ' {
-            indent += 1u;
+            indent += 1;
         } else if ch == '\t' {
             indent += tabwidth;
         } else {
             return indent;
         }
     }
+
+    return indent;
 }
 
 fn peek_line(in : @io::Reader) -> ~str {
