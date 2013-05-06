@@ -27,7 +27,7 @@ fn indent_level(line: &str, tabwidth: uint) -> uint {
 }
 
 fn peek_line(in : @io::Reader) -> ~str {
-    let mark = in.tell();
+    let mark = in.tell() as int;
     let line = in.read_line();
     in.seek(mark, io::SeekSet);
     line
@@ -66,7 +66,7 @@ fn grep(
             }
             Err(e) => match e {
                 CompileErr(_) => {
-                    io::stderr().writeln("error: bad pattern");
+                    io::stderr().write_line("error: bad pattern");
                     return;
                 }
                 ExecErr(_) => {
@@ -79,9 +79,9 @@ fn grep(
             let mut indent_diff: int = cur_indent as int - next_indent as int;
             while indent_diff > 0 {
                 queue.pop();
-                indent_diff -= tabs.pop();
+                indent_diff -= tabs.pop() as int;
                 if indent_diff < 0 {
-                    io::stderr().writeln("line %s: abnormal indentation");
+                    io::stderr().write_line("line %s: abnormal indentation");
                     return;
                 }
             }
@@ -122,6 +122,6 @@ fn main() {
     for files.each |&d| {
         let p: ~Path = ~Path(d);
         let in = result::unwrap(io::file_reader(p));
-        grep(pattern, p.to_str(), in);
+        grep(pattern, p.to_str(), in, tabwidth);
     }
 }
