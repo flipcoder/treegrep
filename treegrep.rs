@@ -1,8 +1,8 @@
 #!/usr/bin/rustc
 
 /*
-   treegrep
-   Like grep, but for trees, outlines, and when indentation matters
+ * treegrep
+ * Like grep, but for trees, outlines, and when indentation matters
  * Not yet finished!
  */
 
