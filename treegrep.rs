@@ -12,10 +12,9 @@ use core::vec;
 use pcre::pcre::*;
 use pcre::consts::*;
 
-fn indent_level(line: &str, tabwidth: uint) -> uint {
-    let mut indent = 0u;
+fn indent_level(line: &str, tabwidth: int) -> int {
+    let mut indent = 0;
 
-    let ch : char = ' ';
     for str::each_char(line) |ch| {
         if ch == ' ' {
             indent += 1;
@@ -31,6 +30,9 @@ fn indent_level(line: &str, tabwidth: uint) -> uint {
 
 fn peek_line(in : @io::Reader) -> ~str {
     let mark = in.tell() as int;
+    if in.eof() {
+        return ~"";
+    }
     let line = in.read_line();
     in.seek(mark, io::SeekSet);
     line
@@ -40,31 +42,36 @@ fn grep(
     pattern: &str,
     filename: &str,
     in : @io::Reader,
-    tabwidth: uint
+    tabwidth: int
 ) {
-    // queue of "pending" lines
-    let mut queue : ~[~str] = ~[];
-    let mut last_indent = 0u;
-    let last_line = ~"";
+    let mut queue : ~[(uint, ~str)] = ~[];
 
     // keeps track of relative indentation
     // the arbitrarily-sized "tabs" of the document
-    let mut tabs = ~[0u];
-    let mut line_no = 0;
+    let mut tabs = ~[0];
+
+    let mut line_no = 0u;
+
+    /*let mut last_line = ~"";*/
+    let mut last_indent = -1;
 
     while !in.eof() {
         let line = in.read_line();
         line_no += 1;
 
         let cur_indent = indent_level(line, tabwidth);
-        let next_line = peek_line(in);
-        let next_indent = indent_level(next_line, tabwidth);
+        /*let next_line = peek_line(in);*/
+        /*let next_indent = indent_level(next_line, tabwidth);*/
+        
+        let mut printed = false;
         
         match search(pattern, line, PCRE_CASELESS) {
             Ok(_) => {
                 for queue.each |&e| {
-                    io::println(fmt!("%s: %s", filename, e));
+                    io::println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
                 }
+                io::println(fmt!("%s(%u): %s", filename, line_no, line));
+                printed = true;
                 queue= ~[];
             }
             Err(e) => match e {
@@ -77,31 +84,33 @@ fn grep(
             }
         }
 
-        if next_indent <= cur_indent {
-            
-            let mut indent_diff: int = cur_indent as int - next_indent as int;
-            while indent_diff > 0 {
+        let mut diff = cur_indent - last_indent;
+        if diff == 0 {
+            if !printed {
                 queue.pop();
-                indent_diff -= tabs.pop() as int;
-                if indent_diff < 0 {
-                    io::stderr().write_line("line %s: abnormal indentation");
-                    return;
+                queue += [(line_no, copy line)];
+            }
+        } else if diff > 0 {
+            queue += [(line_no, copy line)];
+            tabs += [cur_indent - last_indent];
+        } else {
+            while diff < 0 {
+                diff += tabs.pop();
+                if !printed {
+                    queue.pop();
                 }
             }
-
-        } else {
-            queue += [line];
-            tabs += [next_indent - cur_indent];
+            queue += [(line_no, copy line)];
         }
 
-        /*last_indent = cur_indent;*/
+        last_indent = cur_indent;
     }
 }
 
 fn main() {
 
     // TODO: make options program arguments
-    let tabwidth = 4u;
+    let tabwidth = 4;
     //let print_leaves = true;
     //let print_parents = true;
 
@@ -128,3 +137,4 @@ fn main() {
         grep(pattern, p.to_str(), in, tabwidth);
     }
 }
+
