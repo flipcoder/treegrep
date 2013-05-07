@@ -84,18 +84,18 @@ fn grep(
             }
         }
 
-        let mut diff = cur_indent - last_indent;
+        let mut diff = last_indent - cur_indent;
         if diff == 0 {
             if !printed {
                 queue.pop();
                 queue += [(line_no, copy line)];
             }
-        } else if diff > 0 {
+        } else if diff < 0 {
             queue += [(line_no, copy line)];
             tabs += [cur_indent - last_indent];
         } else {
-            while diff < 0 {
-                diff += tabs.pop();
+            while diff > 0 {
+                diff -= tabs.pop();
                 if !printed {
                     queue.pop();
                 }
