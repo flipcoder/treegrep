@@ -53,7 +53,7 @@ fn grep(
     let mut line_no = 0u;
 
     /*let mut last_line = ~"";*/
-    let mut last_indent = -1;
+    let mut last_indent = 0;
 
     while !in.eof() {
         let line = in.read_line();
@@ -84,23 +84,41 @@ fn grep(
             }
         }
 
-        let mut diff = last_indent - cur_indent;
+        let mut diff = cur_indent - last_indent;
         if diff == 0 {
-            if !printed {
+            io::println("repl");
+            if !queue.is_empty() {
+                io::println("- queue pop");
                 queue.pop();
+            }
+            if !printed {
+                io::println("+ queued");
                 queue += [(line_no, copy line)];
             }
-        } else if diff < 0 {
-            queue += [(line_no, copy line)];
+            
+        } else if diff > 0 {
+            io::println("push");
+            if !printed {
+                io::println("+ queued");
+                queue += [(line_no, copy line)];
+            }
+            io::println("+ tab push");
             tabs += [cur_indent - last_indent];
         } else {
-            while diff > 0 {
-                diff -= tabs.pop();
-                if !printed {
+            io::println("unwind");
+            while diff < 0 {
+                diff += tabs.pop();
+                if !queue.is_empty() {
                     queue.pop();
                 }
+                io::println("- tabs pop");
             }
-            queue += [(line_no, copy line)];
+            if !queue.is_empty() {
+                queue.pop();
+            }
+            if !printed {
+                queue += [(line_no, copy line)];
+            }
         }
 
         last_indent = cur_indent;
