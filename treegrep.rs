@@ -26,7 +26,8 @@ fn indent_level(line: &str, tabwidth: int) -> int {
     return indent;
 }
 
-fn peek_line(in : @io::Reader) -> ~str {
+// I don't use this anymore
+/*fn peek_line(in : @io::Reader) -> ~str {
     let mark = in.tell() as int;
     if in.eof() {
         return ~"";
@@ -34,7 +35,7 @@ fn peek_line(in : @io::Reader) -> ~str {
     let line = in.read_line();
     in.seek(mark, io::SeekSet);
     line
-}
+}*/
 
 fn grep(
     pattern: &str,
@@ -47,10 +48,7 @@ fn grep(
     // keeps track of relative indentation
     // the arbitrarily-sized "tabs" of the document
     let mut tabs = ~[0];
-
     let mut line_no = 0u;
-
-    /*let mut last_line = ~"";*/
     let mut last_indent = 0;
 
     while !in.eof() {
@@ -131,7 +129,6 @@ fn main() {
     //let multiple = files.len()>1;
     for files.each |&d| {
         let p: ~Path = ~Path(d);
-        /*let in = result::unwrap(io::file_reader(p));*/
         let in = io::file_reader(p).unwrap();
         grep(pattern, p.to_str(), in, tabwidth);
     }
