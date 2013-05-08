@@ -87,7 +87,7 @@ fn grep(
         match search(pattern, line, PCRE_CASELESS) {
             Ok(_) => {
                 for queue.each |&e| {
-                    io::println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
+                    println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
                 }
                 queue= ~[];
             }
@@ -131,7 +131,8 @@ fn main() {
     //let multiple = files.len()>1;
     for files.each |&d| {
         let p: ~Path = ~Path(d);
-        let in = result::unwrap(io::file_reader(p));
+        /*let in = result::unwrap(io::file_reader(p));*/
+        let in = io::file_reader(p).unwrap();
         grep(pattern, p.to_str(), in, tabwidth);
     }
 }
