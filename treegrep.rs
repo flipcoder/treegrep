@@ -62,16 +62,35 @@ fn grep(
         let cur_indent = indent_level(line, tabwidth);
         /*let next_line = peek_line(in);*/
         /*let next_indent = indent_level(next_line, tabwidth);*/
-        
-        let mut printed = false;
-        
+
+        let mut diff = cur_indent - last_indent;
+        if diff == 0 {
+            if !queue.is_empty() {
+                queue.pop();
+            }
+            queue += [(line_no, copy line)];
+            
+        } else if diff > 0 {
+            queue += [(line_no, copy line)];
+            tabs += [cur_indent - last_indent];
+        } else {
+            while diff < 0 {
+                diff += tabs.pop();
+                if !queue.is_empty() {
+                    queue.pop();
+                }
+            }
+            if !queue.is_empty() {
+                queue.pop();
+            }
+            queue += [(line_no, copy line)];
+        }
+
         match search(pattern, line, PCRE_CASELESS) {
             Ok(_) => {
                 for queue.each |&e| {
                     io::println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
                 }
-                io::println(fmt!("%s(%u): %s", filename, line_no, line));
-                printed = true;
                 queue= ~[];
             }
             Err(e) => match e {
@@ -83,44 +102,7 @@ fn grep(
                 }
             }
         }
-
-        let mut diff = cur_indent - last_indent;
-        if diff == 0 {
-            io::println("repl");
-            if !queue.is_empty() {
-                io::println("- queue pop");
-                queue.pop();
-            }
-            if !printed {
-                io::println("+ queued");
-                queue += [(line_no, copy line)];
-            }
-            
-        } else if diff > 0 {
-            io::println("push");
-            if !printed {
-                io::println("+ queued");
-                queue += [(line_no, copy line)];
-            }
-            io::println("+ tab push");
-            tabs += [cur_indent - last_indent];
-        } else {
-            io::println("unwind");
-            while diff < 0 {
-                diff += tabs.pop();
-                if !queue.is_empty() {
-                    queue.pop();
-                }
-                io::println("- tabs pop");
-            }
-            if !queue.is_empty() {
-                queue.pop();
-            }
-            if !printed {
-                queue += [(line_no, copy line)];
-            }
-        }
-
+        
         last_indent = cur_indent;
     }
 }
@@ -155,4 +137,3 @@ fn main() {
         grep(pattern, p.to_str(), in, tabwidth);
     }
 }
-
