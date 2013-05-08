@@ -16,12 +16,10 @@ fn indent_level(line: &str, tabwidth: int) -> int {
     let mut indent = 0;
 
     for str::each_char(line) |ch| {
-        if ch == ' ' {
-            indent += 1;
-        } else if ch == '\t' {
-            indent += tabwidth;
-        } else {
-            return indent;
+        match ch {
+            ' '  => { indent += 1; }
+            '\t' => { indent += tabwidth; }
+            _    => { return indent; }
         }
     }
 
