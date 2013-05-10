@@ -85,7 +85,11 @@ fn grep(
         match search(pattern, line, PCRE_CASELESS) {
             Ok(_) => {
                 for queue.each |&e| {
-                    println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
+                    if filename.is_empty() {
+                        println(e.second());
+                    } else {
+                        println(fmt!("%s(%u): %s", filename, e.first(), e.second()));
+                    }
                 }
                 queue= ~[];
             }
@@ -120,16 +124,16 @@ fn main() {
 
     if args.len() == 2 {
         let in = io::stdin();
-        grep(pattern, ~"stdin", in, tabwidth);
+        grep(pattern, ~"", in, tabwidth);
         return;
     }
 
     let files = vec::slice(args, 2, args.len());
 
-    //let multiple = files.len()>1;
+    let multiple = files.len()>1;
     for files.each |&d| {
         let p: ~Path = ~Path(d);
         let in = io::file_reader(p).unwrap();
-        grep(pattern, p.to_str(), in, tabwidth);
+        grep(pattern, if multiple {p.to_str()} else {~""}, in, tabwidth);
     }
 }
