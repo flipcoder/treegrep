@@ -1,11 +1,5 @@
 #!/usr/bin/rustc
 
-/*
- * treegrep
- * Like grep, but for trees, outlines, and when indentation matters
- * Not yet finished!
- */
-
 extern mod pcre;
 use core::os;
 use core::vec;
@@ -116,7 +110,10 @@ fn main() {
 
     let args = os::args();
     if args.len() <= 1 {
-        io::stderr().write_line(fmt!("Usage: %s [OPTION]... PATTERN [FILE]...", args[0]));
+        io::stderr().write_line(fmt!(
+            "Usage: %s [OPTION]... PATTERN [FILE]...",
+            Path(args[0]).filename().unwrap()
+        ));
         return;
     }
 
@@ -124,7 +121,7 @@ fn main() {
 
     if args.len() == 2 {
         let in = io::stdin();
-        grep(pattern, ~"", in, tabwidth);
+        grep(pattern, "", in, tabwidth);
         return;
     }
 
